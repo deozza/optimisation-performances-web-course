@@ -10,7 +10,7 @@
   - [Objectif SEO](#objectif-seo)
   - [Chargement des assets](#chargement-des-assets)
     - [Compression et format adapté](#compression-et-format-adapté)
-    - [Pre-fetch](#pre-fetch)
+    - [Pre-fetch, pre-load](#pre-fetch-pre-load)
     - [CDN](#cdn)
 - [Optimisation de l'architecture et des serveurs](#optimisation-de-larchitecture-et-des-serveurs)
   - [L'impact de l'architecture backend](#limpact-de-larchitecture-backend)
@@ -101,9 +101,59 @@ Comment améliorer :
 
 ### Chargement des assets
 
+- les fichiers medias, CSS et JS sont les fichiers les plus longs à charger pour le navigateur
+
+Les metrics à surveiller :
+
+- les Core Web Vitals :
+  - First Input Delay
+    - le temps entre le début du chargement de la page et le moment où l'utilisateur peut intéragir avec
+  - Largest Contentful Paint
+    - le temps entre le début du chargement de la page et l'affichage du plus gros bloc de texte / média visible dans la fenêtre
+    - remplace le First Meaningful Paint et le Speed Index
+  - Cumulative Layout Shift
+    - le score du nombre de décalage des éléments d'une page depuis son chargement jusqu'à sa fermeture
+
 #### Compression et format adapté
 
-#### Pre-fetch
+- minifier les fichiers CSS et JS
+  - retire tous les caractères inutiles (espaces, saut de ligne, indentation) pour réduire la taille des fichiers
+
+- code splitting
+  - séparer le code JS et CSS en plusieurs fichiers
+    - ne pas charger un fichier gigantesque pour utiliser uniquement une fonction
+
+- compresser les fichiers textes (JS, HTML et CSS) avec GZIP ou Brotli
+  - pour réduire la taille des fichiers
+  - ne pas utiliser sur les fichiers binaires (comme les images)
+    - sauf les .svg
+
+- utiliser un format adapté pour les images
+  - svg pour les logos, les icones et toutes les autres images vectorielles
+    - permet de s'adapter à toutes les résolutions sans changer de taille de fichier
+  - webp pour le reste
+    - meilleure compression que jpg
+    - améliore le SEO
+  - gif est aussi un format avec une bonne compression pour une image fixe
+    - à ne pas utiliser pour une vidéo, préférer utiliser mp4
+  - si le format n'est pas supporté par un navigateur, utiliser une image fallback :
+
+```html
+<picture>
+    <source srcset="fichier.webp" type="image/webp" />
+    <img src="fichier.jpg" type="image/jpeg" alt="mon fichier" />
+</picture>
+```
+
+- compresser les images
+  - compresser un jpg à 70% est invisible à l'oeil nu
+  - réduit la taille du fichier par 7
+  - utiliser une API (kraken.io) ou des librairies (imagemagick, imagemin)
+  
+- réduire la dimension des images
+  - pourquoi utiliser une image 4k alors que le container fait 500px ?
+
+#### Pre-fetch, pre-load
 
 #### CDN
 
