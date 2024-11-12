@@ -10,8 +10,11 @@
   - [Objectif SEO](#objectif-seo)
   - [Chargement des assets](#chargement-des-assets)
     - [Compression et format adapté](#compression-et-format-adapté)
-    - [Pre-fetch, pre-load](#pre-fetch-pre-load)
+    - [Preload](#preload)
     - [CDN](#cdn)
+  - [Exemples et mises en pratique](#exemples-et-mises-en-pratique)
+    - [Le cas de McMASTER-CARR](#le-cas-de-mcmaster-carr)
+    - [Le cas de NextFaster](#le-cas-de-nextfaster)
 - [Optimisation de l'architecture et des serveurs](#optimisation-de-larchitecture-et-des-serveurs)
   - [L'impact de l'architecture backend](#limpact-de-larchitecture-backend)
     - [Le monolithe](#le-monolithe)
@@ -153,9 +156,70 @@ Les metrics à surveiller :
 - réduire la dimension des images
   - pourquoi utiliser une image 4k alors que le container fait 500px ?
 
-#### Pre-fetch, pre-load
+#### Preload
+
+- `dns-prefetch`
+  - lorsque le nom de domaine d'une ressource est connue, mais son URI peut varier
+  - permet de faire une requête DNS en avance et de connaître l'adresse IP du serveur de la resource
+  - permet de gagner entre 50 et 300ms
+  - utile pour se connecter à un CDN ou à Google Fonts
+
+- `preconnect`
+  - comme `dns-prefetch` mais fait une connection conplète
+  - fait gagner plus de temps mais demande plus de resources
+
+- `prefetch`
+  - permet de charger et mettre en cache une resource précise
+  - s'active lorsque la balise qui l'utilise est visible sur la page
+  - utile pour charger un bundle JS, une feuille CSS
+  - la ressource doit être prioritaire pour l'affichage de la page
+
+- `preload`
+  - comme `prefetch`, mais pour des ressources non prioritaires pour l'affichage de la page
+
+- `prerender`
+  - charge en avance le contenu d'une page
+  - permet de l'afficher instantanément une fois qu'on y navigue
 
 #### CDN
+
+- Content Delivery Network
+- infrastructure qui met à disposition des serveurs dans le monde entier
+- permet de stocker des fichiers statiques (images, fonts, css, js)
+- lorsqu'une visite est faire sur un site, le serveur du CDN le plus proche lui fournit les fichiers demandés
+- permet de réduire de 100ms environ une requête
+- très efficace lorsque plusieurs requêtes sont faites d'affilées pour une page
+
+Exemples de CDN :
+
+- cloudflare
+- fastly
+
+### Exemples et mises en pratique
+
+#### Le cas de McMASTER-CARR
+
+- backend en .NET
+- frontend en html et js maison
+
+- pour les perfs
+  - dns-prefetch pour les domaines des assets
+  - preload des fonts, logos et autres images
+  - utilisation d'un CDN pour stocker les assets...
+  - ...et l'html du site
+  - utilisation d'un service worker pour charger le site du cache (comme une PWA)
+  - comportement :
+    - la page est séparée en component
+    - uniquement la partie centrale est mise à jour pendant la navigation
+    - lorsqu'un lien est survolé, le contenu de la page et ses configs sont préchargés et mis en cache
+    - lorsqu'il est cliqué, la partie centrale est mise à jour *puis* l'url
+      - **SPA**
+
+- pour le CLS
+  - css critique en style avant l'html
+  - taille fixe des images
+
+#### Le cas de NextFaster
 
 ## Optimisation de l'architecture et des serveurs
 
