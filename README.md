@@ -19,6 +19,9 @@
   - [L'impact de l'architecture backend](#limpact-de-larchitecture-backend)
     - [Le monolithe](#le-monolithe)
     - [Le micro service](#le-micro-service)
+  - ["Web scale"](#web-scale)
+    - [Scaling vertical](#scaling-vertical)
+    - [Scaling horizontal](#scaling-horizontal)
   - [L'impact de l'architecture frontend](#limpact-de-larchitecture-frontend)
     - [Le SSR](#le-ssr)
     - [Le SSG](#le-ssg)
@@ -27,10 +30,8 @@
     - [Le VPS](#le-vps)
     - [Le serverless](#le-serverless)
     - [Le edge](#le-edge)
-  - ["Web scale"](#web-scale)
-    - [Scaling vertical](#scaling-vertical)
-    - [Scaling horizontal](#scaling-horizontal)
 - [Optimisation du backend](#optimisation-du-backend)
+  - [Quel langage utiliser est le plus performant](#quel-langage-utiliser-est-le-plus-performant)
   - [L'impact des algorithmes](#limpact-des-algorithmes)
     - [Comment monitorer les fonctions](#comment-monitorer-les-fonctions)
   - [L'impact de la BDD](#limpact-de-la-bdd)
@@ -225,9 +226,88 @@ Exemples de CDN :
 
 ### L'impact de l'architecture backend
 
+![monlith vs microservice](assets/monolith_vs_microservice.gif)
+
 #### Le monolithe
 
+Définition :
+
+- toutes les fonctionnalités réunies dans une seule application, avec une seule base de données
+
+Avantages :
+
+- tout est accessible à un seul endroit
+  - facile à utiliser
+  - facile à tester
+  - facile à débugger
+  - facile pour implémenter de nouvelles fonctionnalités
+- scalable verticalement
+
+Inconvénients :
+
+- si un serveur est down, toutes les fonctionnalités sont downs
+- mises à jour lentes
+- déploit tout ou rien
+
+
 #### Le micro service
+
+Définition :
+
+- 1 domaine applicatif = une application avec son API et sa base de données
+- 
+
+Avantages :
+
+- permet de scaler horizontalement
+- équipes de développement indépendantes
+
+Inconvénients :
+
+- définition floue
+  - quand est-ce que c'est micro ?
+  - c'est quoi un service ?
+- complexité : [Problème des microservices](https://youtu.be/y8OnoxKotPQ)
+- latence :
+
+![latence](assets/latency.png)
+
+- absence de tooling
+- destruction du DRY
+  - il y a forcément des fonctionnalités communes aux services
+  - faire un bundle
+    - comment gérer les mises à jour ?
+    - comment gérer les versions compatibles ?
+    - comment gérer les fonctionnalités utiles pour services A et B mais inutiles pour X et Y ?
+- destruction de la DX
+- tests
+  - de charge
+  - d'intégration
+    - qui maîtrise toute la chaîne pour maîtriser les tests d'intégration ?
+  - passage sur de l'observabilité ?
+    - canary
+
+![canary](assets/canary.png)
+
+- coût énorme
+  - en infrastructure
+  - en personnes
+
+https://www.youtube.com/watch?v=LcJKxPXYudE&t=80s
+
+### "Web scale"
+
+#### Scaling vertical
+
+- augmenter les performances d'une instance serveur
+  - augmenter la puissance CPU , la RAM, l'espace disque, le type de stockage, l'interface réseau, ...
+- difficilemnt rétrogradable
+
+#### Scaling horizontal
+
+- augmenter le nombre d'instances de serveurs pour répartir la charge
+- facile à faire évoluer et adapter à la charge en temps réel
+- coût adapté à la charge
 
 ### L'impact de l'architecture frontend
 
@@ -241,17 +321,23 @@ Exemples de CDN :
 
 #### Le VPS
 
+
+
 #### Le serverless
+
+
 
 #### Le edge
 
-### "Web scale"
 
-#### Scaling vertical
-
-#### Scaling horizontal
 
 ## Optimisation du backend
+
+### Quel langage utiliser est le plus performant
+
+https://byteofdev.com/posts/javascript-benchmarking-mess/
+
+https://www.youtube.com/watch?v=RrHGX1wwSYM
 
 ### L'impact des algorithmes
 
