@@ -14,17 +14,18 @@
     - [CDN](#cdn)
   - [Exemples et mises en pratique](#exemples-et-mises-en-pratique)
     - [Le cas de McMASTER-CARR](#le-cas-de-mcmaster-carr)
-    - [Le cas de NextFaster](#le-cas-de-nextfaster)
 - [Optimisation de l'architecture et des serveurs](#optimisation-de-larchitecture-et-des-serveurs)
   - [L'impact de l'architecture backend](#limpact-de-larchitecture-backend)
     - [Le monolithe](#le-monolithe)
     - [Le micro service](#le-micro-service)
-  - ["Web scale"](#web-scale)
+  - [Scaling](#scaling)
     - [Scaling vertical](#scaling-vertical)
     - [Scaling horizontal](#scaling-horizontal)
+    - [Web scale, planet scale, ...](#web-scale-planet-scale-)
   - [L'impact de l'architecture frontend](#limpact-de-larchitecture-frontend)
     - [Le SSR](#le-ssr)
-    - [Le SSG](#le-ssg)
+      - [Le SSG](#le-ssg)
+    - [Le CSR](#le-csr)
     - [Le SPA](#le-spa)
   - [L'impact de l'infrastructure serveur](#limpact-de-linfrastructure-serveur)
     - [Le VPS](#le-vps)
@@ -220,19 +221,23 @@ Exemples de CDN :
   - css critique en style avant l'html
   - taille fixe des images
 
-#### Le cas de NextFaster
-
 ## Optimisation de l'architecture et des serveurs
 
 ### L'impact de l'architecture backend
 
-![monlith vs microservice](assets/monolith_vs_microservice.gif)
+![monolith vs microservice](assets/monolith_vs_microservice.gif)
 
 #### Le monolithe
 
 Définition :
 
 - toutes les fonctionnalités réunies dans une seule application, avec une seule base de données
+
+Exemples d'utilisation :
+
+- shopify (Ruby on Rails)
+- whatsapp (Erlang)
+- stackoverflow (C# et ASP.NET)
 
 Avantages :
 
@@ -248,14 +253,29 @@ Inconvénients :
 - si un serveur est down, toutes les fonctionnalités sont downs
 - mises à jour lentes
 - déploit tout ou rien
-
+- scale tout ou rien
+- couplage fort des dépendances
+  - au langage
+  - au framework
+  - aux designs patterns
 
 #### Le micro service
 
 Définition :
 
-- 1 domaine applicatif = une application avec son API et sa base de données
-- 
+- ensemble de programmes répartis sur plusieurs noeuds pour atteindre un objectif commun
+- 1 domaine applicatif = une application avec son API, sa logique métier et sa base de données
+- dépendant d'un système pour faire communiquer les noeuds
+  - par API HTTP, par RPC, par messaging
+
+> Certains pourraient dire que le micro service est du rebranding des systèmes distribués.
+
+Exemples d'implémentation :
+
+- email
+- internet
+- systèmes d'aviation
+- amazon, twitter, youtube, netflix
 
 Avantages :
 
@@ -292,10 +312,13 @@ Inconvénients :
 - coût énorme
   - en infrastructure
   - en personnes
+- dette technique à moyen et long terme
+
+> Certains pourraient faire un paralèlle avec la loi de Conway (la structure d'un système reflète la structure de l'organisation à son origine)
 
 https://www.youtube.com/watch?v=LcJKxPXYudE&t=80s
 
-### "Web scale"
+### Scaling
 
 #### Scaling vertical
 
@@ -309,27 +332,178 @@ https://www.youtube.com/watch?v=LcJKxPXYudE&t=80s
 - facile à faire évoluer et adapter à la charge en temps réel
 - coût adapté à la charge
 
+#### Web scale, planet scale, ...
+
+![planet scale](assets/planet-scale.png)
+
+https://www.youtube.com/watch?v=b2F-DItXtZs
+
+- architecture qui s'adapte automatiquement au nombre d'utiliseurs
+  - les performances ne sont pas impactées
+  - le nombre d'erreurs n'augmente pas
+- utilisé par Facebook, Amazon, Google, ...
+
 ### L'impact de l'architecture frontend
 
 #### Le SSR
 
-#### Le SSG
+Définition :
+
+- server side rendering
+  - le client fait une requête HTTP au serveur
+  - le serveur construit la page et envoie l'HTML au client
+  - le client télécharge des scripts JS et les exécute pour rendre la page dynamique
+    - principe de l'hydration
+
+> Certains pourraient dire que c'est exactement ce qu'on faisait en construisant des monolithes en PHP, Ruby on Rails, ...
+
+Cas d'usages :
+
+- blogs, e commerce
+
+Avantages :
+
+- le contenu est présent sur le serveur, donc crawlables et indexables
+- temps de chargement rapide
+  - chargement des données avant l'affichage
+  - les serveur sont plus proches, moins d'aller-retours
+  - plus facile pour mettre du cache
+  - ne dépend pas de la capacité du client pour charger
+
+Inconvénients :
+
+- potentiels problèmes de shared state
+- applications moins intéractives
+- dépendant des performances du serveur
+  - et de leur coût
+
+##### Le SSG
+
+Définition :
+
+- static site generation
+  - l'intégralité du site est généré sous forme de pages HTML prêtes à être utilisées
+
+> Un site réalisé "à l'ancienne" avec des fichiers HTML, sans framework, est un SSG
+
+Cas d'usages :
+
+- blogs, site vitrine / landing page, portfolios
+
+Avantages :
+
+- tous ceux du SSR
+- deployable sur CDN
+  - donc coût d'hébergement réduits
+  - chargement très rapide, peu importe la localisation des visiteur.ses
+  - sécurité (pas de serveur)
+
+Inconvénients :
+
+- absence de logique côté serveur
+  - pas de personnalisation de la page en fonction de l'utilisateur.ice
+- chaque changement de contenu nécessite une nouvelle génération et un nouveau déploiement
+
+#### Le CSR
+
+Définition :
+
+- client side rendering
+  - le client télécharge des scripts JS
+  - le JS exécuté construit la structure de la page depuis le client
+
+Cas d'usages :
+
+- dashboard, messagerie
+
+Avantages :
+
+- soulage le serveur
+- peut tromper l'utilisateur.ice sur les performances en remplaçant des éléments au lieu de recharger la page
+- grande intéractivité
+
+Inconvénients :
+
+- performances dépendantes de la bande passante du client et de son matériel
+- difficultés pour implémenter du SEO efficacement
+- difficultés pour mettre en place du cache
+- doit constamment vérifier l'état des données (chargées ? nulles ?)
 
 #### Le SPA
+
+Définition :
+
+- single page application
+- une application qui ne recharge pas la page lors d'un changement de route
+- traditionnellement une application CSR, mais peut être SSR
 
 ### L'impact de l'infrastructure serveur
 
 #### Le VPS
 
+Définition :
 
+- virtual private server
+- serveur sur lequel tout doit être configuré
+- abonnement mensuel
+
+Cas d'usages :
+
+- tout ?
+
+Avantages ... et inconvénients :
+
+- prix fixe
+- contrôle total sur la machine
+  - gestion des ressources
+  - gestion de la sécurité
 
 #### Le serverless
 
+Définition :
 
+- serverless !== sans serveur
+  - sans serveur *à gérer*
+- déploiement chez un cloud provider (aws, azure, gcp, ...)
+- souvent déploiement automatique OU automatisable facilement
+- la machine est éteinte par défaut et s'allume lorsqu'il y a de la charge
+  - scalable horizontalement
+  - prix à l'utilisation, pas d'abonnement mensuel
+    - souvent un free tier
+
+Cas d'usages :
+
+- scripts, cron
+- prototypes, demo
+
+Avantages :
+
+- rapide à mettre en place
+- couplé à un CDN pour les applications SSR
+
+Inconvénients :
+
+- doit être architecturé différemment
+- management des coûts
+- boîte noire
+- walled garden
+- cold start
 
 #### Le edge
 
+Définition :
 
+- se base sur le serverless / cloud computing
+- *CDN mais pour des exécutables*
+- déploie le même script sur plusieurs serveurs dans le monde pour que le plus proche de l'utilisateur.ice soit utilisé
+
+Avantages :
+
+- pas de cold start
+
+Inconvénients :
+
+- on fait quoi de la DB ?
 
 ## Optimisation du backend
 
