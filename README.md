@@ -18,6 +18,7 @@
   - [L'impact de l'architecture backend](#limpact-de-larchitecture-backend)
     - [Le monolithe](#le-monolithe)
     - [Le micro service](#le-micro-service)
+    - [GraphQL ou REST](#graphql-ou-rest)
   - [Scaling](#scaling)
     - [Scaling vertical](#scaling-vertical)
     - [Scaling horizontal](#scaling-horizontal)
@@ -32,14 +33,21 @@
     - [Le serverless](#le-serverless)
     - [Le edge](#le-edge)
 - [Optimisation du backend](#optimisation-du-backend)
-  - [Quel langage utiliser est le plus performant](#quel-langage-utiliser-est-le-plus-performant)
+  - [Quel langage est le plus performant](#quel-langage-est-le-plus-performant)
   - [L'impact des algorithmes](#limpact-des-algorithmes)
+    - [Quels algorithmes utiliser](#quels-algorithmes-utiliser)
+    - [Quelles fonctions favoriser suivant les langages](#quelles-fonctions-favoriser-suivant-les-langages)
+      - [PHP](#php)
+      - [JS](#js)
     - [Comment monitorer les fonctions](#comment-monitorer-les-fonctions)
   - [L'impact de la BDD](#limpact-de-la-bdd)
-    - [SGBD ou SGBDR ?](#sgbd-ou-sgbdr-)
-    - [GraphQL](#graphql)
+    - [SGBD/NoSQL ou SGBDR/SQL ?](#sgbdnosql-ou-sgbdrsql-)
     - [Améliorer les requêtes](#améliorer-les-requêtes)
+    - [Monitorer les requêtes](#monitorer-les-requêtes)
   - [Le cache](#le-cache)
+    - [Page caching](#page-caching)
+    - [Browser cache](#browser-cache)
+    - [Serveur de cache](#serveur-de-cache)
 
 ## Introduction
 
@@ -318,6 +326,19 @@ Inconvénients :
 
 https://www.youtube.com/watch?v=LcJKxPXYudE&t=80s
 
+#### GraphQL ou REST
+
+![REST vs GRAPHQL](assets/REST-vs-GRAPHQL.png)
+[logrocket](https://blog.logrocket.com/graphql-vs-rest-api-why-you-shouldnt-use-graphql)
+
+À utiliser pour :
+
+- réunir plusieurs requêtes API en une seule et éviter les allez-retours
+- préciser quelle donnée est réellement utilisée, donc réduire la bande passante de la requête
+- palier à un problème d'architecture, plus que de performances
+
+En réalité, beaucoup des fonctionnalités de GraphQL peuvent être implémentées avec du REST. Elles ne sont pas disponibles par défaut.
+
 ### Scaling
 
 #### Scaling vertical
@@ -507,24 +528,206 @@ Inconvénients :
 
 ## Optimisation du backend
 
-### Quel langage utiliser est le plus performant
+### Quel langage est le plus performant
 
-https://byteofdev.com/posts/javascript-benchmarking-mess/
+https://xcancel.com/BenjDicken/status/1863977678690541570
 
-https://www.youtube.com/watch?v=RrHGX1wwSYM
+> - sur le fond, le benchmark ne reflète pas un cas réel donc ne vaut rien
+> - sur la forme, les barres bougent trop différemment alors que les chronos sont très similaires
+> - concernant les programmes compilés, c'est davantage un benchmark sur les compilateurs qu'un benchmark sur le programme
+>   - est-ce que la personne qui programme sait comment les abuser/optimiser
+>   - est-ce que le compilateur est performant
+
+https://www.youtube.com/shorts/oVKvfMYsVDw
+
+> - express a été utilisé pour node, alors qu'il est reconnu comme le moins efficace des frameworks + l'overhead du moteur V8
+> - un middleware écrit en C++ a été utilisé pour php pour booster les performances + tourne sans framework + le serveur de base de PHP a été utilisé (alors qu'il n'est pas fait pour la prod)
+> - go ne devrait pas être aussi lent puisque compilé
 
 ### L'impact des algorithmes
 
+![algorithm complexity chart](assets/complexity.webp)
+
+- metric : complexité cyclomatique des algorithmes
+- concept : le nombre d'instructions à exécuter pour la réaliser d'une fonction, par rapport à l'input de cette fonction.
+
+Exemples :
+
+```TS
+
+// complexité O(1)
+function returnFirstItemOfArray(input: array) {
+  return input[0];
+}
+
+
+// complexité O(n)
+function reverseString(input: string): string {
+  let result: string = '';
+  for(let i = input.length - 1; i >=0; i--) {
+    result += input[i];
+  }
+
+  return result;
+}
+
+// complexité O(2^n)
+function fibonacci(input: number): number {
+  if(input < 2) {
+    return input;
+  }
+
+  return fibonnaci(input - 1) + fibonnacci(input - 2);
+}
+
+```
+
+#### Quels algorithmes utiliser
+
+- dans une fonction
+  - réduire les boucles imbriquées
+  - réduire les embranchements `if else`
+
+> Algorithmes avec un BigO faible === algorithmes écrits en clean code
+
+- éviter les fonctions récursives
+  - la fonction est interprétée à nouveau à chaque itération et prend de plus en plus de place mémoire
+
+- utiliser des hash maps
+  - prendre un tableau associatif de clefs-valeurs
+  - hasher les clefs et les répartir dans des sous-tableaux (*bins* ou *buckets*)
+  - sauvegarder les valeurs dans les bins correspondant
+  - plus rapide de chercher une clef dans 100 bins puis dans le bin correspondant, que dans un tableau de 10 000 clefs
+
+#### Quelles fonctions favoriser suivant les langages
+
+##### PHP
+
+- pour vérifier qu'une valeur existe dans un tableau, utiliser `isset()` plutôt que `in_array()`
+  - même si `isset()` n'est pas clean (elle vérifie si la valeur existe et si elle est différente de null)
+  - `isset()` utilise un algorithme de recherche basé sur une hash map alors que `in_array()` parcours tout le tableau
+  - on peut aussi utiliser `array_flip()` pour inverser clefs et valeurs dans un tableau (et créer une hash map) puis utiliser `array_key_exists()`
+
+##### JS
+
+- pour parcourir un tableau, une boucle `for(let i = 1...)` est plus rapide que `array.forEach()`, `array.reduce()` et `for(... of ...)`
+- pour rechercher une valeur dans un tableau, créer un `Set` (une hash map) et utiliser `set.has()` est plus rapide que `array.includes()`
+- pour trier un tableau de chiffres, la fonction `array.sort()` est plus rapide qu'un algorithme de merge sort ou de bubble sort
+
 #### Comment monitorer les fonctions
+
+- en php :
+  - avec la fonction `microtime()`
+  - avec xdebug
+  - avec [xhprof](https://github.com/phacility/xhprof)
+- en js :
+  - utiliser deno ?
 
 ### L'impact de la BDD
 
-#### SGBD ou SGBDR ?
+#### SGBD/NoSQL ou SGBDR/SQL ?
 
-#### GraphQL
+SQL :
+
+- consistant
+- efficace pour manipuler de la donnée
+
+NoSQL :
+
+- tolérance à la partition
+- disponibilité
+- efficace pour uniquement écrire et lire de la donnée
+  - souvent en très grande quantité et/ou à grande fréquence
+  - grâce au format document / denormalized
 
 #### Améliorer les requêtes
 
-https://github.com/charles-001/dolphie
+![Order of exection of the clauses in a SQL request](assets/SQL-request-execution-order.png)
+
+Le plus intensif pour une requête SQL est :
+
+- le `FROM` / `JOIN`
+- le `WHERE` / `ON`
+- le `SELECT`
+
+**Pour optimiser le `FROM`**
+
+- utiliser des indexs
+- optimiser les jointures
+  - préférer les `INNER JOIN` pour limiter le nombre de lignes à traiter
+
+**Pour optimiser le `WHERE`**
+
+- utiliser des arguments SARGABLE
+  - pour Search ARGument ABLE
+  - éviter d'utiliser des fonctions
+    - une fonction bypass les indexs
+  - éviter les joker/wildcard en début de chaîne
+
+Exemples :
+
+```SQL
+SELECT ... WHERE YEAR(date) = 2023; --bad
+SELECT ... WHERE date >= '2023-01-01' AND date < '2024-01-01'; --good
+
+SELECT ... WHERE SUBSTRING(name, 3) = 'foo'; --bad
+SELECT ... WHERE name LIKE 'foo%'; --good
+```
+
+- ne pas faire de sous-requêtes
+  - préférer faire une jointure plutôt que `WHERE property = (SELECT ...)`
+
+**Pour optimiser le `SELECT`**
+
+- select uniquement les propriétés qui seront utilisées
+  - limiter les `SELECT *`
+
+**Optimisations globales**
+
+- paginer les résultats (utilisation de `LIMIT` et `OFFSET`)
+- batch update/insert
+- attention à ne pas lancer plusieurs requêtes en même temps sur les mêmes ressources
+  - problèmes de concurrence d'accès aux données
+- utiliser les bons types
+  - `BIGINT`, `INT`, `TINYINT`, ...
+- utiliser des tables dédiées / optimisées
+  - partitionner une table pour en avoir plusieurs petites
+    - sharding
+  - créer une vue pour une requête lourde et récurrente
+
+#### Monitorer les requêtes
+
+- avec un outil en CLI : https://github.com/charles-001/dolphie
+- avec un outil en GUI : https://www.mysql.com/fr/products/workbench/
+- avec le mot clef `EXPLAIN` :
+
+```SQL
+EXPLAIN SELECT * FROM table;
+```
 
 ### Le cache
+
+#### Page caching
+
+- mettre en cache le résultat d'une page html
+- si la page mise en cache est considérée récente
+  - on la renvoie directement
+  - sinon on génère la page de nouveau, on la stocke en cache et on la renvoie
+- avantage : on renvoie des fichiers statiques, avec très peu de traitements, donc très rapide
+- inconvénient : si le contenu de la page évolue souvent, impossible à mettre en place
+
+#### Browser cache
+
+- utiliser le header `Cache-Control` avec les options :
+  - `max-age` pour faire expirer la réponse du cache au bout d'un certain temps en ms
+  - `expires` pour faire expirer la réponse du cache après une date
+  - `private` pour stocker le cache uniquement sur le client (un autre serveur ne pourra pas mettre en cache)
+  - `public` pour stocker le cache sur n'importe quel appareil
+
+#### Serveur de cache
+
+- exemple de redis
+- base de données non relationnelle
+- stocke dans la ram, pas sur le disque
+- s'installe comme application dédiée ou en dépendance d'une application existante
+- dispose d'une api simple pour écrire et lire depuis le cache
