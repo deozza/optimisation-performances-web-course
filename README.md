@@ -608,11 +608,15 @@ function fibonacci(input: number): number {
   - `isset()` utilise un algorithme de recherche basé sur une hash map alors que `in_array()` parcours tout le tableau
   - on peut aussi utiliser `array_flip()` pour inverser clefs et valeurs dans un tableau (et créer une hash map) puis utiliser `array_key_exists()`
 
+[source](https://stackoverflow.com/a/13483548)
+
 ##### JS
 
 - pour parcourir un tableau, une boucle `for(let i = 1...)` est plus rapide que `array.forEach()`, `array.reduce()` et `for(... of ...)`
 - pour rechercher une valeur dans un tableau, créer un `Set` (une hash map) et utiliser `set.has()` est plus rapide que `array.includes()`
 - pour trier un tableau de chiffres, la fonction `array.sort()` est plus rapide qu'un algorithme de merge sort ou de bubble sort
+
+[source](https://www.youtube.com/watch?v=_pWA4rbzvIg)
 
 #### Comment monitorer les fonctions
 
